@@ -1,0 +1,66 @@
+- hosts: localhost
+  tasks:
+  - name: "Creating A WorkSpace on MN"
+    file:
+      path: /root/AnsibleTask
+      state: directory
+
+  - name: Copying Content Into Managed Node
+    copy:
+      src: "/root/web.html"
+      dest: "/root/AnsibleTask"
+    ignore_errors: yes
+
+  - name: "Starting docker services"
+    service:
+      name: "docker"
+      state: started
+
+  - name: "docker service info"
+    debug:
+      msg: "Docker services started"
+
+  - name: "Pull httpd docker image"
+    docker_image:
+      name: httpd
+      pull: yes
+      state: present
+
+  - name: "Launch a docker container"
+    docker_container:
+      name: "web1_ansible"
+      image: httpd
+      state: started
+      interactive: yes
+      tty: yes
+      exposed_ports:
+      - "80"
+      ports:
+      - "8081:80"
+      volumes:
+      - /root/AnsibleTask/:/usr/local/apache2/htdocs/
+
+  - name: "Retrieve docker container IP-address"
+    community.general.docker_container_info:
+      name: "web1_ansible"
+    register: IP
+
+  - name: "Docker Container IP-address"
+    debug:
+      var: IP.container.NetworkSettings.IPAddress
+
+  - name: "Update docker conatiner Ip-address in ansible inventory file"
+    blockinfile:
+      path: "/root/ip.txt"
+      block: |
+              [docker]
+              {{ IP.container.NetworkSettings.IPAddress }}
+
+
+
+- hosts: docker
+  tasks:
+  - name: "configure httpd"
+    template:
+           src: "/root/you.html"
+           dest: "/var/html/www"
