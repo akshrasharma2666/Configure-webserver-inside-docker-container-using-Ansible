@@ -15,3 +15,5 @@ In above task, You have to create an Ansible playbook that will retrieve newCont
 
 Hint:- Use Blockinfile module and
        Use customize docker image(your own customize docker image)
+       
+Output check by: https://baseOS_public_ip:exposePort/html_page
