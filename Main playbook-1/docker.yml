@@ -1,5 +1,68 @@
 - hosts: localhost
-  tasks:
+  vars:
+    — repo_mount_path: “/root/software/”
+   — dest_iso: “/dev/cdrom”
+  tasks: 
+
+   — name: create a folder.
+     file: 
+       path: /root/software
+       state: directory
+       mode: ‘0755’
+
+  - name: mount ISO file to the created folder.
+    mount:
+       src: “{{dest_iso}}”
+       path: “{{repo_mount_path}}”
+       state: mounted
+       fstype: “iso9660”
+
+  - name: Mount ISO file permanently.
+    lineinfile:
+       dest: /etc/rc.d/rc.local
+       line: mount /dev/cdrom /root/software/
+       state: present
+       create: yes
+
+  - name: Make /etc/rc.d/rc.local file executable!!
+    command: chmod +x /etc/rc.d/rc.local
+
+  - name: Adding yum repository.
+    yum_repository:
+        name: dvd1 
+        description: YUM AppStream repo
+        baseurl: “file://{{repo_mount_path}}/AppStream”
+        enabled: yes
+       gpgcheck: no
+
+  - name: Adding yum repository.
+    yum_repository:
+           name: dvd2
+           description: YUM BaseOS repo
+           baseurl: “file://{{repo_mount_path}}//BaseOS”
+           enabled: yes
+           gpgcheck: no
+
+ - name: Adding docker repository.
+   yum_repository:
+      name: docker
+      description: Docker_repository
+      baseurl: “https://download.docker.com/linux/centos/7/x86_64/stable/"
+      gpgcheck: no
+
+  - name: Install Docker
+    package:
+      name: “docker-ce-18.06.3.ce-3.el7.x86_64”
+      state: present
+  
+  - name: Start Docker services.
+    service:
+      name: “docker”
+      state: started
+ 
+  - pip: 
+    name: docker
+ 
   - name: "Creating A WorkSpace on MN"
     file:
       path: /root/AnsibleTask
@@ -10,15 +73,6 @@
       src: "/root/web.html"
       dest: "/root/AnsibleTask"
     ignore_errors: yes
-
-  - name: "Starting docker services"
-    service:
-      name: "docker"
-      state: started
-
-  - name: "docker service info"
-    debug:
-      msg: "Docker services started"
 
   - name: "Pull httpd docker image"
     docker_image:
