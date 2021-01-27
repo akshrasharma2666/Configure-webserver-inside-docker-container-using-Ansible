@@ -13,7 +13,7 @@ Task Description📄
 
 In above task, You have to create an Ansible playbook that will retrieve newContainer IP and update the inventory. So that further Configuration of Webserver could be done inside that Container.(Task-14.2)
 
-Hint:- Use Blockinfile module and
+Hint:- Use blockinfile module and lineinfile module
        Use customize docker image(your own customize docker image)
        
 Output check by: https://baseOS_public_ip:exposePort/html_page
